@@ -129,7 +129,7 @@ footer{text-align:center;color:var(--muted);font-size:11.5px;padding:18px 0 26px
 
 <div class="filters"><div class="wrap"><div class="frow">
  <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
-  <input id="q" placeholder="Buscar por nome ou CPF..."></div>
+  <input id="q" placeholder="Buscar por nome ou CPF..." autocomplete="off" readonly onfocus="this.removeAttribute('readonly')"></div>
  <select id="fcomp"><option value="">Todas as companhias</option><option>1ª Cia - Xanxerê</option><option>2ª Cia - Xaxim</option></select>
  <select id="fcomarca"><option value="">Todas as comarcas</option></select>
  <select id="ftipo"><option value="">Todos os tipos</option></select>
@@ -150,8 +150,8 @@ footer{text-align:center;color:var(--muted);font-size:11.5px;padding:18px 0 26px
 
 <div class="modal" id="modal"><div class="mbox">
  <h3>Acesso do administrador</h3><p id="mtxt">Informe a senha para habilitar a edição do painel.</p>
- <input type="email" id="email" placeholder="E-mail do administrador" autocomplete="off" style="display:none">
- <input type="password" id="pass" placeholder="Senha" autocomplete="off">
+ <input type="email" id="email" placeholder="E-mail do administrador" autocomplete="username" style="display:none">
+ <input type="password" id="pass" placeholder="Senha" autocomplete="current-password">
  <div class="mrow"><button class="btn sec" id="mcancel">Cancelar</button><button class="btn pri" id="mok">Entrar</button></div>
 </div></div>
 
@@ -185,7 +185,7 @@ const FB_ON=(typeof firebaseConfig!=='undefined')&&firebaseConfig.apiKey&&fireba
 let db=null;
 let EDITS=FB_ON?{}:JSON.parse(localStorage.getItem('mp_edits')||'{}');
 function prune(o){const r={};for(const k in o){const e=o[k]||{};if((e.paradeiro&&e.paradeiro.trim())||(e.info&&e.info.trim())||(e.prioridade&&e.prioridade!=='Normal')||e.pinned||(e.updates&&e.updates.length))r[k]=e;}return r;}
-function saveEdits(){const clean=prune(EDITS);if(FB_ON){if(db)db.ref('edits').set(clean);}else{localStorage.setItem('mp_edits',JSON.stringify(clean));}}
+function saveEdits(){const clean=prune(EDITS);if(FB_ON){if(db)db.ref('edits').set(clean).catch(function(e){alert('Erro ao salvar (confirme que está logado como administrador): '+e.message);});}else{localStorage.setItem('mp_edits',JSON.stringify(clean));}}
 const ed=uid=>EDITS[uid]||(EDITS[uid]={paradeiro:'',info:'',prioridade:'Normal',pinned:false,updates:[]});
 let admin=FB_ON?false:(sessionStorage.getItem('mp_admin')==='1');
 let theme=localStorage.getItem('mp_theme')||'light';
@@ -282,7 +282,7 @@ $('email').addEventListener('keydown',e=>{if(e.key==='Enter')tryLogin()});
 function tryLogin(){
   if(FB_ON){
     firebase.auth().signInWithEmailAndPassword($('email').value.trim(),$('pass').value)
-      .then(()=>{$('modal').classList.remove('on');})
+      .then(()=>{$('modal').classList.remove('on');$('q').value='';S.q='';render();})
       .catch(err=>alert('Falha no login: '+err.message));
   } else {
     if($('pass').value===ADMIN_PASS){admin=true;sessionStorage.setItem('mp_admin','1');$('modal').classList.remove('on');applyAdmin();}
