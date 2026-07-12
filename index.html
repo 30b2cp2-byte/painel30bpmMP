@@ -184,9 +184,9 @@ const tipoColor={'MP Civil':['#fef3c7','#92610a'],'MP Preventiva':['#ffe4d6','#b
 const FB_ON=(typeof firebaseConfig!=='undefined')&&firebaseConfig.apiKey&&firebaseConfig.apiKey!=='COLE_AQUI';
 let db=null;
 let EDITS=FB_ON?{}:JSON.parse(localStorage.getItem('mp_edits')||'{}');
-function prune(o){const r={};for(const k in o){const e=o[k]||{};if((e.paradeiro&&e.paradeiro.trim())||(e.info&&e.info.trim())||(e.prioridade&&e.prioridade!=='Normal')||e.pinned||(e.updates&&e.updates.length))r[k]=e;}return r;}
+function prune(o){const r={};for(const k in o){const e=o[k]||{};if((e.paradeiro&&e.paradeiro.trim())||(e.info&&e.info.trim())||(e.prioridade&&e.prioridade!=='Normal')||e.pinned||(e.updates&&(e.updates&&e.updates.length)))r[k]=e;}return r;}
 function saveEdits(){const clean=prune(EDITS);if(FB_ON){if(db)db.ref('edits').set(clean).catch(function(e){alert('Erro ao salvar (confirme que está logado como administrador): '+e.message);});}else{localStorage.setItem('mp_edits',JSON.stringify(clean));}}
-const ed=uid=>EDITS[uid]||(EDITS[uid]={paradeiro:'',info:'',prioridade:'Normal',pinned:false,updates:[]});
+const ed=uid=>{var e=EDITS[uid];if(!e){e=EDITS[uid]={paradeiro:'',info:'',prioridade:'Normal',pinned:false,updates:[]};}if(e.updates===undefined)e.updates=[];if(e.prioridade===undefined)e.prioridade='Normal';if(e.paradeiro===undefined)e.paradeiro='';if(e.info===undefined)e.info='';if(e.pinned===undefined)e.pinned=false;return e;};
 let admin=FB_ON?false:(sessionStorage.getItem('mp_admin')==='1');
 let theme=localStorage.getItem('mp_theme')||'light';
 const S={q:'',comp:'',comarca:'',tipo:'',sit:'',sort:'pin'};
@@ -229,7 +229,7 @@ function render(){
   const pbadge=(e.prioridade&&e.prioridade!=='Normal')?`<span class="pbadge" style="background:${PRIO[e.prioridade]}">${e.prioridade}</span>`:'';
   const parHtml=e.paradeiro?`<div class="extra"><span class="k">Provável paradeiro</span><br>${esc(e.paradeiro)}</div>`:'';
   const infoHtml=e.info?`<div class="extra"><span class="k">Informações</span><br>${esc(e.info)}</div>`:'';
-  const updHtml=e.updates.length?`<div class="extra"><span class="k">Atualizações</span><ul class="updates">${e.updates.map(u=>`<li><span class="t">${esc(u.t)}</span>${esc(u.txt)}</li>`).join('')}</ul></div>`:'';
+  const updHtml=(e.updates&&e.updates.length)?`<div class="extra"><span class="k">Atualizações</span><ul class="updates">${(e.updates||[]).map(u=>`<li><span class="t">${esc(u.t)}</span>${esc(u.txt)}</li>`).join('')}</ul></div>`:'';
   let editHtml='';
   if(admin){editHtml=`<div class="edit"><h4>✎ Editar (administrador)</h4>
     <label>Provável paradeiro</label><textarea data-f="paradeiro" data-uid="${x.uid}">${esc(e.paradeiro)}</textarea>
